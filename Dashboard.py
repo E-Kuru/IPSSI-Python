@@ -17,52 +17,55 @@ st.write("Bienvenue sur notre plateforme interactive qui vous permettra d'explor
 st.subheader("Comment utiliser `Streamlit` ?")
 st.write("Voici les quelques commandes de base pour utiliser `Streamlit` :")
 
+uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True, type=['csv'])
 
-df = pd.read_csv('data.csv')
+if uploaded_files:
+    for uploaded_file in uploaded_files:
+        if uploaded_file.type == "text/csv":
+            df = pd.read_csv(uploaded_file)
+            st.write("filename:", uploaded_file.name)
+            st.write(df)
+        else:
+            st.error("Le fichier que vous avez uploadé n'est pas un fichier CSV.")
 
 st.subheader("Affichage des donnees brutes")
-if st.checkbox("Afficher les données brutes"):
+if st.checkbox("Afficher les données brutes") and 'df' in locals():
     st.write(df)
-
 
 col1, col2 = st.columns(2)
 
-
 st.subheader("Affichage dynamique des donnees")
 with col1:
-    profession = list(df.Profession.value_counts().index)
-    st.write("1️⃣ Example de widget")
-    age = st.slider("Sélectionnez un âge", min_value=20, max_value=100, value=30, step=1)
-    pro = st.selectbox('Sélectionnez une profession', profession)
-    st.write(df[(df.Profession == pro) & (df.Age > age)])
-
+    if 'df' in locals():
+        profession = list(df.Profession.value_counts().index)
+        st.write("1️⃣ Example de widget")
+        age = st.slider("Sélectionnez un âge", min_value=20, max_value=100, value=30, step=1)
+        pro = st.selectbox('Sélectionnez une profession', profession)
+        st.write(df[(df.Profession == pro) & (df.Age > age)])
+    else:
+        st.write("Veuillez uploader un fichier CSV.")
 
 with col2:
     st.write("2️⃣ Example de widget formulaire")
+    if 'df' in locals():
+        column = ['Graduated', 'Ever_Married']
+        option = ['Yes', 'No']
+        age_user = range(100)
+        nb_children = range(14)
 
-    column = ['Graduated', 'Ever_Married']
-    option = ['Yes', 'No']
-    age_user = range(100)
-    nb_children = range(14)
+        form = st.form(key='my_form')
 
-    form = st.form(key='my_form')
+        with form:
+            c1 = st.selectbox('Sélectionnez un critère', column)
+            c2 = st.selectbox('Sélectionnez une option', option)
+            c3 = st.selectbox('Sélectionnez un âge', age_user)
+            c4 = st.selectbox('Sélectionnez un nombre d\'enfant', nb_children)
 
-    with form:
-        c1 = st.selectbox('Sélectionnez un crière', column)
-        c2 = st.selectbox('Sélectionnez une option', option)
-        c3 = st.selectbox('Sélectionnez un âge', age_user)
-        c4 = st.selectbox('Sélectionnez un nombre d\'enfant', nb_children)
+            submit = form.form_submit_button(label='Submit')
 
-        submit = form.form_submit_button(label='Submit')
-
-        if submit:
-            st.write(df[(df[c1] == c2) & (df.Family_Size > c3)].Work_Experience.mean())
-
-
-uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
-for uploaded_file in uploaded_files:
-    df = pd.read_csv(uploaded_file)
-    st.write("filename:", uploaded_file.name)
-    st.write(df)
+            if submit:
+                st.write(df[(df[c1] == c2) & (df.Family_Size > c3)].Work_Experience.mean())
+    else:
+        st.write("Veuillez uploader un fichier CSV.")
 
 st.sidebar.title("Menu")
